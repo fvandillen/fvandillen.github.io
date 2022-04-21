@@ -1,0 +1,29 @@
+{
+  "name": "eleventy-blog",
+  "version": "1.1.0",
+  "description": "An example blog site using Eleventy that covers fundamental functionality",
+  "scripts": {
+    "build": "npx eleventy",
+    "serve": "npx eleventy --serve",
+    "debug": "DEBUG=* npx eleventy",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonUK/eleventy-blog.git"
+  },
+  "author": "Jon Keeping",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JonUK/eleventy-blog/issues"
+  },
+  "homepage": "https://github.com/JonUK/eleventy-blog#readme",
+  "devDependencies": {
+    "@11ty/eleventy": "^0.12.1",
+    "jest": "^26.6.3",
+    "moment": "^2.29.1"
+  },
+  "dependencies": {
+    "@jest/globals": "latest"
+  }
+}
