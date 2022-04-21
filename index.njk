@@ -7,12 +7,14 @@ pagination:
   alias: posts
 ---
 
+<p>Welcome to my blog. Here, I will write about technical subjects relating to my work with <strong>.NET</strong> and <strong>Azure</strong>. If you want me to write about anything in particular, please feel free to open <a href="https://github.com/fvandillen/fvandillen.github.io/issues">an issue in the repo</a>.</p>
+
 {% for post in posts %}
   <article>
 
-    <h1>
+    <h2>
       <a href="{{ post.url | url }}">{{ post.data.title }}</a>
-    </h1>
+    </h2>
 
     <time datetime="{{ post.date | dateIso }}">{{ post.date | dateReadable }}</time>
 
