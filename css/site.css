@@ -20,9 +20,9 @@ body {
 header {
   display: flex;
   align-items: center; /* Vertically align */
-  padding: 5px 16px;
+  padding: 15px;
   color: white;
-  background-color: #0747A6;
+  background-color: green;
   border-radius: 8px;
 }
 
@@ -39,7 +39,7 @@ header > a:hover {
 
 .link--home {
   flex-grow: 1;
-  font-size: 2em;
+  font-size: 1.5em;
 }
 
 .link--about {
