@@ -9,8 +9,8 @@
       "showShareButtons": true,
       "showReadingTime": true,
       "homeInfoParams": {
-         "title": "Hi there, visitor!",
-         "content": "Welcome to my blog."
+         "title": "Full-stack developer @ 4Dotnet",
+         "content": "Blogging about Azure, .NET and architecture."
       },
       "socialIcons": [
          {
