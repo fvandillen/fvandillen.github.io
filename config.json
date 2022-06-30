@@ -20,5 +20,15 @@
             "url": "https://www.linkedin.com/in/florianvandillen/"
          }
       ]
+   },
+   "outputs": {
+      "home": [
+         "HTML",
+         "RSS",
+         "JSON"
+      ]
+   },
+   "menu": {
+      
    }
 }
