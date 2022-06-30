@@ -1,1 +1,0 @@
-Welcome to my blog! This is where I will be keeping you posted about what I am working on, as well as other technical bits that may be of interest.

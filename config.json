@@ -2,5 +2,23 @@
    "baseURL": "https://fvandillen.github.io",
    "languageCode": "en-us",
    "title": "Florian van Dillen",
-   "theme": "PaperMod"
+   "theme": "PaperMod",
+   "params": {
+      "showPostNavLinks": true,
+      "showCopyCodeButtons": true,
+      "homeInfoParams": {
+         "title": "Hi there, visitor!",
+         "content": "Welcome to my blog."
+      },
+      "socialIcons": [
+         {
+            "name": "github",
+            "url": "https://github.com/fvandillen"
+         },
+         {
+            "name": "linkedin",
+            "url": "https://www.linkedin.com/in/florianvandillen/"
+         }
+      ]
+   }
 }
