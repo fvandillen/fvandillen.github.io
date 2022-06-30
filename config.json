@@ -31,6 +31,19 @@
       ]
    },
    "menu": {
-      
+      "main": [
+         {
+            "url": "/tags",
+            "name": "Tags"
+         },
+         {
+            "url": "/archive",
+            "name": "Archive"
+         },
+         {
+            "url": "/search",
+            "name": "Search"
+         }
+      ]
    }
 }
