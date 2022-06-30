@@ -14,7 +14,7 @@ Sometimes a query in Synapse serverless SQL doesn't work as expected and times o
 In your favorite SQL tool, run the following query to identify the `process ID` of the stuck query:
 
 # SQL snippet
-{{< highlight Sql "linenos=table" >}}
+{{< highlight tsql "linenos=table" >}}
 	SELECT 
 	    'Running' as [Status],
         Transaction_id as [Request ID],
@@ -44,7 +44,7 @@ In your favorite SQL tool, run the following query to identify the `process ID` 
 
 # Killing the process
 Using your obtained `process ID` (in this example it will be `81`), run the following SQL to kill the process:
-{{< highlight Sql "linenos=table" >}}
+{{< highlight tsql "linenos=table" >}}
 KILL 81
 {{< /highlight >}}
 
