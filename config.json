@@ -5,7 +5,9 @@
    "theme": "PaperMod",
    "params": {
       "showPostNavLinks": true,
-      "showCopyCodeButtons": true,
+      "showCodeCopyButtons": true,
+      "showShareButtons": true,
+      "showReadingTime": true,
       "homeInfoParams": {
          "title": "Hi there, visitor!",
          "content": "Welcome to my blog."
