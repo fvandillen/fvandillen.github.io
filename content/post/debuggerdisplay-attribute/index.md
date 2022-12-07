@@ -10,7 +10,6 @@ ShowToc: true
 
 When working on a .NET project, you are highly likely to use custom objects. When you start debugging your code, you can see them in the debugger. However, the default way these objects are displayed by the debugger is not very handy nor developer friendly. You are probably interested in the identifying properties of your custom object rather than the name of your class.
 
-
 # Example program
 > Note: The example program is using top-level statements, so you will not see any namespaces or method body. To learn more, check out: https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/top-level-statements
 
@@ -35,7 +34,8 @@ public class CustomObject
 {{< /highlight >}}
 
 When you set a breakpoint on line 4, the custom object will be displayed in the debugger like this:
-![Debugger display default](/debuggerdisplay-attribute/vs-1.png)
+
+![Debugger display default](vs-1.png)
 
 
 That isn't helping! It would be much nicer to see the name of the custom object right away, so we can easily distinguish between different objects of the same kind.
@@ -69,7 +69,7 @@ public class CustomObject
 
 And no surprise here, we can now see the value appear in the debugger:
 
-![Debugger display default](/debuggerdisplay-attribute/vs-2.png)
+![Debugger display with attribute](vs-2.png)
 
 # Conclusion
 Using this simple attribute, we can debug complex classes much easier by simply telling the debugger how we want it to display objects. To learn more about the specifics of the `DebuggerDisplayAttribute`, check out: https://docs.microsoft.com/en-us/visualstudio/debugger/using-the-debuggerdisplay-attribute?view=vs-2022
