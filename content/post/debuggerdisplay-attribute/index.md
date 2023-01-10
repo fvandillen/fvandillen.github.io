@@ -1,11 +1,12 @@
 ---
-title: "Level up your debugging game with DebuggerDisplayAttribute"
+title: "Level up your debugging game!"
 date: 2022-07-01T09:01:27+02:00
 draft: false
 author: ["Florian van Dillen"] 
 tags: ["C#", ".NET", "Visual Studio"]
-summary: 
-ShowToc: true
+description: Make debugging easier with the use of the DebuggerDisplayAttribute.
+toc: true
+comments: false
 ---
 
 When working on a .NET project, you are highly likely to use custom objects. When you start debugging your code, you can see them in the debugger. However, the default way these objects are displayed by the debugger is not very handy nor developer friendly. You are probably interested in the identifying properties of your custom object rather than the name of your class.

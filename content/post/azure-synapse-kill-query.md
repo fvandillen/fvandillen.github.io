@@ -4,8 +4,9 @@ date: 2022-06-30T13:56:48+02:00
 draft: false
 author: ["Florian van Dillen"]
 tags: ["Azure", "Synapse", "Performance"]
-summary: Explains how to kill a Synapse query that is stuck in SQL serverless pool.
-ShowToc: true
+description: Explains how to kill a Synapse query that is stuck in SQL serverless pool.
+toc: true
+comments: false
 ---
 
 # Introduction
@@ -47,6 +48,10 @@ Using your obtained `process ID` (in this example it will be `81`), run the foll
 {{< highlight tsql "linenos=table" >}}
 KILL 81
 {{< /highlight >}}
+
+```sql
+KILL 81
+```
 
 Be warned, this might take a while. If everything went well, you will have things moving again.
 
