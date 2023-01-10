@@ -10,7 +10,7 @@ comments: false
 ---
 
 # Introduction
-For one of our customers we are in the process of rebuilding the frontend due to growth in the IT organization. In the past year or two, the single team of developers responsible for frontend development has grown into a more feature-oriented organization. This means that one feature can be owned by team A and another feature can be owned by team B. This creates challenges when working on a single frontend that is plagued with legacy issues.
+For one of our customers we are in the process of rebuilding the frontend due to growth in the IT organization. In the past year or two, the single team of developers responsible for frontend development has grown into a more feature-oriented organization. This means that one feature can be owned by team A and another feature can be owned by team B. This creates challenges when working on a single frontend that contains legacy as well.
 
 For instance, the current application can only be deployed as a whole. This means releases of new versions have to be coordinated between the different teams. This makes releasing more labour intensive than it should be.
 
