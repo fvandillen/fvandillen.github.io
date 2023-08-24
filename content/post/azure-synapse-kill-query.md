@@ -49,10 +49,6 @@ Using your obtained `process ID` (in this example it will be `81`), run the foll
 KILL 81
 {{< /highlight >}}
 
-```sql
-KILL 81
-```
-
 Be warned, this might take a while. If everything went well, you will have things moving again.
 
 # What if this doesn't work?
