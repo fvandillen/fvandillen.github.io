@@ -15,7 +15,7 @@ defaultContentLanguageInSubdir = false
     languageCode = 'en'
     languageDirection = 'ltr'
     languageName = 'English'
-    title = 'English'
+    title = 'Florian van Dillen'
     weight = 0
 
 # Set hasCJKLanguage to true if DefaultContentLanguage is in [zh-cn ja ko]
