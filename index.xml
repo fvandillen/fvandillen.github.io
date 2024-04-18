@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Florian van Dillen</title><link>https://fvandillen.github.io/</link><description>Recent content on Florian van Dillen</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 18 Apr 2024 16:00:00 +0200</lastBuildDate><atom:link href="https://fvandillen.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Speaking at Futuretech 2024</title><link>https://fvandillen.github.io/posts/speaking-at-futuretech-2024/</link><pubDate>Thu, 18 Apr 2024 16:00:00 +0200</pubDate><guid>https://fvandillen.github.io/posts/speaking-at-futuretech-2024/</guid><description>&lt;p>&lt;img src="https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image.jpg"
+width="1600"
+height="1200"
+srcset="https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image_hu7e275441c465555927283becdd73faa0_140417_480x0_resize_q75_box.jpg 480w, https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image_hu7e275441c465555927283becdd73faa0_140417_1024x0_resize_q75_box.jpg 1024w"
+loading="lazy"
+alt="Explaining the different Dapr hosting modes"
+class="gallery-image"
+data-flex-grow="133"
+data-flex-basis="320px"
+>&lt;/p>
+&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>Yesterday I had the privillege of speaking at a tech conference for the first time! My colleague &lt;a class="link" href="https://hexmaster.nl/" target="_blank" rel="noopener"
+>Eduard Keilholz&lt;/a> pushed me to answer the call for papers and get started with speaking about cool tech at conferences. To my big surprise, my session was accepted and could take this next step in my career!&lt;/p>
+&lt;h2 id="my-session">My session&lt;/h2>
+&lt;p>During the work for &lt;a class="link" href="https://4dotnet.nl" target="_blank" rel="noopener"
+>4Dotnet&lt;/a>, I work for one of our customers where we are actively implementing microservices using .NET, Dapr and Azure Container Apps. In the local development environments, we use .NET Aspire to quickly gain insights into what the services are doing. OpenTelemetry is the key to discovering potential issues with the services before they occur in production.&lt;/p>
+&lt;p>With this experience, the idea for the session was born. How can I teach developers to build a good local development environment for distributed applications?&lt;/p>
+&lt;h2 id="slides">Slides&lt;/h2>
+&lt;p>Interested in the slides? I got you covered! &lt;a class="link" href="presentation_public.pdf" >Click here to download the slides.&lt;/a>&lt;/p>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;p>Of course the code that I used to build the demo is also available. &lt;a class="link" href="https://github.com/fvandillen/futuretech-dapr-aspire" target="_blank" rel="noopener"
+>Click here to be taken to the Github repository&lt;/a>. Do you have any questions? No problem, I&amp;rsquo;m happy to help you out and get started using Dapr and Aspire. &lt;a class="link" href="https://github.com/fvandillen/futuretech-dapr-aspire/issues" target="_blank" rel="noopener"
+>Just open a Github issue here&lt;/a> and we&amp;rsquo;ll be in touch!&lt;/p></description></item><item><title>Microfrontends: Web components (part 1)</title><link>https://fvandillen.github.io/posts/microfrontends-web-components-part-1/</link><pubDate>Tue, 10 Jan 2023 19:00:00 +0100</pubDate><guid>https://fvandillen.github.io/posts/microfrontends-web-components-part-1/</guid><description>&lt;h1 id="introduction">Introduction&lt;/h1>
+&lt;p>For one of our customers we are in the process of rebuilding the frontend due to growth in the IT organization. In the past year or two, the single team of developers responsible for frontend development has grown into a more feature-oriented organization. This means that one feature can be owned by team A and another feature can be owned by team B. This creates challenges when working on a single frontend that contains legacy as well.&lt;/p>
+&lt;p>For instance, the current application can only be deployed as a whole. This means releases of new versions have to be coordinated between the different teams. This makes releasing more labour intensive than it should be.&lt;/p>
+&lt;p>Also testing is an issue. Ideally you want to run automated UI tests so you are certain the frontend behaves in the way you expect it to. However when you have to run the entire test suite (which takes 3+ hours) when you change a single comma, this becomes an issue when you want to release quick and often.&lt;/p>
+&lt;h1 id="microfrontends-as-a-solution">Microfrontends as a solution&lt;/h1>
+&lt;p>Luckily, we have tools at our disposal nowadays to overcome these issues. One of the methods is called microfrontends. When going this route, you essentially create a shell application that will be responsible for loading the microfrontends (or MFEs) and routing the user to the correct MFE. The shell also functions as a coordination layer between the MFEs and will address any cross-cutting concerns such as authentication and translations.&lt;/p>
+&lt;p>In our case the shell application will be written in Vue 3. This Javascript framework is widely used at our customer and most developers are familiar with it already. The plan they drafted was to expose the current Vue 2 application as an MFE and consume it in the new shell application. This will allow the teams to gradually recreate those pages and features in more modern web technology and eventually get rid of the old Vue 2 application entirely.&lt;/p>
+&lt;p>The major upside of having multiple MFEs is that we can now have multiple teams working on them! Each team has their own repositories and pipelines which means they can deploy and test independently.&lt;/p>
+&lt;h1 id="module-federation">Module federation&lt;/h1>
+&lt;p>So how can we expose our MFEs to the shell application and consume them? To achieve this, we decided to use an approach called module federation. In essence, this allows us to remotely load Javascript modules from a URL and mount them into our shell. Because the modules are fetched remotely every time the shell launches, they can be deployed independently.&lt;/p>
+&lt;p>However, this has proven to not be a very easy task. For one, the shell runs Vue 3 which means you cannot (easily) mount Vue 2 components inside it. In the first iteration, we tried to wrap our Vue 2 components with all of their dependencies before exposing it to the shell via module federation. This quickly became messy and didn&amp;rsquo;t work well:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">export&lt;/span> &lt;span class="kd">function&lt;/span> &lt;span class="nx">bootstrapComponentRemote&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>: &lt;span class="kt">any&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">wrapperId&lt;/span>: &lt;span class="kt">string&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Get a correctly bootstrapped Vue instance with dependencies configured.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">vueInstance&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">bootstrapComponent&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Overwrite the render method with our own logic.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">render&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">x&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">x&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">on&lt;/span>: &lt;span class="kt">this.$attrs&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">attrs&lt;/span>: &lt;span class="kt">this.$attrs&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">props&lt;/span>: &lt;span class="kt">this.$props&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">scopedSlots&lt;/span>: &lt;span class="kt">this.$scopedSlots&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Return the Vue2 instance with our Vue2 component wrapped as a Vue3 component.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mounted() {&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">$mount&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sb">`#&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">wrapperId&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="sb">`&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">props&lt;/span>: &lt;span class="kt">WrapperComponent.props&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">render() {&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">vueInstance&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">$forceUpdate&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The above approach worked fine when initially routing to the remote component, but subsequent routing would result in the component not being rendered at all. Oops! Quite a big deal when you&amp;rsquo;re working with a single page application&amp;hellip;&lt;/p>
+&lt;h1 id="web-components-to-the-rescue">Web components to the rescue!&lt;/h1>
+&lt;p>What if we didn&amp;rsquo;t have to deal with all the UI framework complexities and could just send a standardized (and even native) module to our shell? That sounds like black magic, but fortunately the tech is already here. It&amp;rsquo;s called &lt;a class="link" href="https://www.webcomponents.org/introduction" target="_blank" rel="noopener"
+>web components&lt;/a> and all the major browsers &lt;a class="link" href="https://caniuse.com/?search=web%20components" target="_blank" rel="noopener"
+>already support it&lt;/a>. The tech is based on open standards and uses ES modules to wire it all together.&lt;/p>
+&lt;p>Essentially, this turns any module/component into a reusable piece of Javascript that we can then use in any framework or even in plain HTML if that is your cup of tea. Think of it as Docker containers for the World Wide Web. 😎😎&lt;/p>
+&lt;p>What we did is wrap the Vue 2 component as a web component before exposing it via module federation. To achieve this, we use the plugin &lt;a class="link" href="https://github.com/vuejs/vue-web-component-wrapper" target="_blank" rel="noopener"
+>Vue web component wrapper&lt;/a>. This plugin allows us to easily wrap any Vue 2 component as a web component:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">Vue&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;vue&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">wrap&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;@vue/web-component-wrapper&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">Component&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// any component options
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">CustomElement&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">wrap&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">Vue&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Component&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The wrapped component is exposed via module federation (more on that in part 2 of these series). Once the module is consumed in the shell, it can be registered as a custom element:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">CustomElement&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;mfe/customElement&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">customElements&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">define&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my-element&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">CustomElement&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Once registered, a new wrapper component can be made in the shell that contains a template that uses the custom element:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">my-element&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;/&lt;/span>&lt;span class="nt">my-element&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h1 id="conclusion">Conclusion&lt;/h1>
+&lt;p>The custom element behaves exactly like it should. It can be routed to, attributes can be added to it as a means of passing arguments. Events can be emitted by it and the browser tools can be used to fully inspect it. The web component achieves full encapsulation from the DOM by using a shadow DOM. Therefore it is (partly) immune from specific CSS styles that affect the regular DOM.&lt;/p>
+&lt;p>All in all, this provides us with a very nice way of exposing our legacy components with the use of open standards. We are not limited by specific frameworks and could even use React or Angular components in the shell. This creates a very solid foundation for the rest of our adventures with our customer.&lt;/p>
+&lt;p>I intend to continue writing about this and will go in-depth on module federation in a next installment. Stay tuned!&lt;/p></description></item><item><title>Level up your debugging game!</title><link>https://fvandillen.github.io/posts/level-up-your-debugging-game/</link><pubDate>Fri, 01 Jul 2022 09:01:27 +0200</pubDate><guid>https://fvandillen.github.io/posts/level-up-your-debugging-game/</guid><description>&lt;p>When working on a .NET project, you are highly likely to use custom objects. When you start debugging your code, you can see them in the debugger. However, the default way these objects are displayed by the debugger is not very handy nor developer friendly. You are probably interested in the identifying properties of your custom object rather than the name of your class.&lt;/p>
+&lt;h1 id="example-program">Example program&lt;/h1>
+&lt;blockquote>
+&lt;p>Note: The example program is using top-level statements, so you will not see any namespaces or method body. To learn more, check out: &lt;a class="link" href="https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/top-level-statements" target="_blank" rel="noopener"
+>https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/top-level-statements&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;p>Consider the following program:
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-csharp" data-lang="csharp">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">niceCustomObject&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;4Dotnet&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Super cool description.&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">anotherNiceCustomObject&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Microsoft&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Another description.&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Console&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">WriteLine&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Hello, World!&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">public&lt;/span> &lt;span class="k">class&lt;/span> &lt;span class="nc">CustomObject&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">Name&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="k">get&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">set&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">Description&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="k">get&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">set&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">string&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">description&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Name&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">description&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>When you set a breakpoint on line 4, the custom object will be displayed in the debugger like this:&lt;/p>
+&lt;p>&lt;img src="https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-1.png"
+width="725"
+height="151"
+srcset="https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-1_hu49e811d67f191da818ff475354c87353_7926_480x0_resize_box_3.png 480w, https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-1_hu49e811d67f191da818ff475354c87353_7926_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+alt="Debugger display default"
+class="gallery-image"
+data-flex-grow="480"
+data-flex-basis="1152px"
+>&lt;/p>
+&lt;p>That isn&amp;rsquo;t helping! It would be much nicer to see the name of the custom object right away, so we can easily distinguish between different objects of the same kind.&lt;/p>
+&lt;h1 id="implementing-the-debuggerdisplayattribute">Implementing the DebuggerDisplayAttribute&lt;/h1>
+&lt;p>Lucky for us, we can use the &lt;code>DebuggerDisplayAttribute&lt;/code> available in .NET. We can put it above our class and provide a string argument containing the template we want to use for displaying object instances in the debugger. The string is evaluated as the name of a field, property, or method.&lt;/p>
+&lt;p>In our case, we use the &lt;code>Name&lt;/code> field so we can easily identify each object instance.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-csharp" data-lang="csharp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">using&lt;/span> &lt;span class="nn">System.Diagnostics&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">niceCustomObject&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;4Dotnet&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Super cool description.&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">anotherNiceCustomObject&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Microsoft&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Another description with a different text.&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Console&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">WriteLine&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Hello, World!&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">[DebuggerDisplay(&amp;#34;{Name}&amp;#34;)]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">public&lt;/span> &lt;span class="k">class&lt;/span> &lt;span class="nc">CustomObject&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">Name&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="k">get&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">set&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">Description&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="k">get&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">set&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">public&lt;/span> &lt;span class="n">CustomObject&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">string&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="n">description&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Name&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">description&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>And no surprise here, we can now see the value appear in the debugger:&lt;/p>
+&lt;p>&lt;img src="https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-2.png"
+width="720"
+height="147"
+srcset="https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-2_hu68ed0c3478743fc51e4a066dacc3dc5c_13576_480x0_resize_box_3.png 480w, https://fvandillen.github.io/posts/level-up-your-debugging-game/vs-2_hu68ed0c3478743fc51e4a066dacc3dc5c_13576_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+alt="Debugger display with attribute"
+class="gallery-image"
+data-flex-grow="489"
+data-flex-basis="1175px"
+>&lt;/p>
+&lt;h1 id="conclusion">Conclusion&lt;/h1>
+&lt;p>Using this simple attribute, we can debug complex classes much easier by simply telling the debugger how we want it to display objects. To learn more about the specifics of the &lt;code>DebuggerDisplayAttribute&lt;/code>, check out: &lt;a class="link" href="https://docs.microsoft.com/en-us/visualstudio/debugger/using-the-debuggerdisplay-attribute?view=vs-2022" target="_blank" rel="noopener"
+>https://docs.microsoft.com/en-us/visualstudio/debugger/using-the-debuggerdisplay-attribute?view=vs-2022&lt;/a>&lt;/p></description></item><item><title>How to kill a Synapse query</title><link>https://fvandillen.github.io/posts/how-to-kill-a-synapse-query/</link><pubDate>Thu, 30 Jun 2022 13:56:48 +0200</pubDate><guid>https://fvandillen.github.io/posts/how-to-kill-a-synapse-query/</guid><description>&lt;h1 id="introduction">Introduction&lt;/h1>
+&lt;p>Sometimes a query in Synapse serverless SQL doesn&amp;rsquo;t work as expected and times out, or worse. It may happen that it gets stuck entirely. Luckily, there is a way to get things going again! Here&amp;rsquo;s how.&lt;/p>
+&lt;p>In your favorite SQL tool, run the following query to identify the &lt;code>process ID&lt;/code> of the stuck query:&lt;/p>
+&lt;h1 id="sql-snippet">SQL snippet&lt;/h1>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-tsql" data-lang="tsql">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Running&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Status&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">Transaction_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Request ID&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;SQL On-demand&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">SQL Resource&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">login_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Submitter&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">Session_Id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Session ID&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">start_time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Submit time&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">command&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Request Type&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nf">SUBSTRING&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">sqltext&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nc">text&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">statement_start_offset&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CASE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">statement_end_offset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">DATALENGTH&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sqltext&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nc">text&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">ELSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">statement_end_offset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">statement_start_offset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Query Text&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">total_elapsed_time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">Duration&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">sys&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">dm_exec_requests&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CROSS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">APPLY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sys&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">dm_exec_sql_text&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sql_handle&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sqltext&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sys&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">dm_exec_sessions&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">session_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">session_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h1 id="killing-the-process">Killing the process&lt;/h1>
+&lt;p>Using your obtained &lt;code>process ID&lt;/code> (in this example it will be &lt;code>81&lt;/code>), run the following SQL to kill the process:
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-tsql" data-lang="tsql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">KILL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">81&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Be warned, this might take a while. If everything went well, you will have things moving again.&lt;/p>
+&lt;h1 id="what-if-this-doesnt-work">What if this doesn&amp;rsquo;t work?&lt;/h1>
+&lt;p>It could be that things are unable to get started again. In that case, you will have one more trick in the book: Azure support. If you open a ticket with them, they can restart your SQL serverless pool.&lt;/p></description></item><item><title>Archives</title><link>https://fvandillen.github.io/archives/</link><pubDate>Sun, 06 Mar 2022 00:00:00 +0000</pubDate><guid>https://fvandillen.github.io/archives/</guid><description/></item><item><title>Links</title><link>https://fvandillen.github.io/links/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://fvandillen.github.io/links/</guid><description/></item><item><title>Search</title><link>https://fvandillen.github.io/search/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://fvandillen.github.io/search/</guid><description/></item></channel></rss>

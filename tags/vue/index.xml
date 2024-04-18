@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vue on Florian van Dillen</title><link>https://fvandillen.github.io/tags/vue/</link><description>Recent content in Vue on Florian van Dillen</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 10 Jan 2023 19:00:00 +0100</lastBuildDate><atom:link href="https://fvandillen.github.io/tags/vue/index.xml" rel="self" type="application/rss+xml"/><item><title>Microfrontends: Web components (part 1)</title><link>https://fvandillen.github.io/posts/microfrontends-web-components-part-1/</link><pubDate>Tue, 10 Jan 2023 19:00:00 +0100</pubDate><guid>https://fvandillen.github.io/posts/microfrontends-web-components-part-1/</guid><description>&lt;h1 id="introduction">Introduction&lt;/h1>
+&lt;p>For one of our customers we are in the process of rebuilding the frontend due to growth in the IT organization. In the past year or two, the single team of developers responsible for frontend development has grown into a more feature-oriented organization. This means that one feature can be owned by team A and another feature can be owned by team B. This creates challenges when working on a single frontend that contains legacy as well.&lt;/p>
+&lt;p>For instance, the current application can only be deployed as a whole. This means releases of new versions have to be coordinated between the different teams. This makes releasing more labour intensive than it should be.&lt;/p>
+&lt;p>Also testing is an issue. Ideally you want to run automated UI tests so you are certain the frontend behaves in the way you expect it to. However when you have to run the entire test suite (which takes 3+ hours) when you change a single comma, this becomes an issue when you want to release quick and often.&lt;/p>
+&lt;h1 id="microfrontends-as-a-solution">Microfrontends as a solution&lt;/h1>
+&lt;p>Luckily, we have tools at our disposal nowadays to overcome these issues. One of the methods is called microfrontends. When going this route, you essentially create a shell application that will be responsible for loading the microfrontends (or MFEs) and routing the user to the correct MFE. The shell also functions as a coordination layer between the MFEs and will address any cross-cutting concerns such as authentication and translations.&lt;/p>
+&lt;p>In our case the shell application will be written in Vue 3. This Javascript framework is widely used at our customer and most developers are familiar with it already. The plan they drafted was to expose the current Vue 2 application as an MFE and consume it in the new shell application. This will allow the teams to gradually recreate those pages and features in more modern web technology and eventually get rid of the old Vue 2 application entirely.&lt;/p>
+&lt;p>The major upside of having multiple MFEs is that we can now have multiple teams working on them! Each team has their own repositories and pipelines which means they can deploy and test independently.&lt;/p>
+&lt;h1 id="module-federation">Module federation&lt;/h1>
+&lt;p>So how can we expose our MFEs to the shell application and consume them? To achieve this, we decided to use an approach called module federation. In essence, this allows us to remotely load Javascript modules from a URL and mount them into our shell. Because the modules are fetched remotely every time the shell launches, they can be deployed independently.&lt;/p>
+&lt;p>However, this has proven to not be a very easy task. For one, the shell runs Vue 3 which means you cannot (easily) mount Vue 2 components inside it. In the first iteration, we tried to wrap our Vue 2 components with all of their dependencies before exposing it to the shell via module federation. This quickly became messy and didn&amp;rsquo;t work well:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">export&lt;/span> &lt;span class="kd">function&lt;/span> &lt;span class="nx">bootstrapComponentRemote&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>: &lt;span class="kt">any&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">wrapperId&lt;/span>: &lt;span class="kt">string&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Get a correctly bootstrapped Vue instance with dependencies configured.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">vueInstance&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">bootstrapComponent&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Overwrite the render method with our own logic.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">render&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">x&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">x&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">WrapperComponent&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">on&lt;/span>: &lt;span class="kt">this.$attrs&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">attrs&lt;/span>: &lt;span class="kt">this.$attrs&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">props&lt;/span>: &lt;span class="kt">this.$props&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">scopedSlots&lt;/span>: &lt;span class="kt">this.$scopedSlots&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Return the Vue2 instance with our Vue2 component wrapped as a Vue3 component.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mounted() {&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">$mount&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sb">`#&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">wrapperId&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="sb">`&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">props&lt;/span>: &lt;span class="kt">WrapperComponent.props&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">render() {&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">vueInstance&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">vueInstance&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">$forceUpdate&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The above approach worked fine when initially routing to the remote component, but subsequent routing would result in the component not being rendered at all. Oops! Quite a big deal when you&amp;rsquo;re working with a single page application&amp;hellip;&lt;/p>
+&lt;h1 id="web-components-to-the-rescue">Web components to the rescue!&lt;/h1>
+&lt;p>What if we didn&amp;rsquo;t have to deal with all the UI framework complexities and could just send a standardized (and even native) module to our shell? That sounds like black magic, but fortunately the tech is already here. It&amp;rsquo;s called &lt;a class="link" href="https://www.webcomponents.org/introduction" target="_blank" rel="noopener"
+>web components&lt;/a> and all the major browsers &lt;a class="link" href="https://caniuse.com/?search=web%20components" target="_blank" rel="noopener"
+>already support it&lt;/a>. The tech is based on open standards and uses ES modules to wire it all together.&lt;/p>
+&lt;p>Essentially, this turns any module/component into a reusable piece of Javascript that we can then use in any framework or even in plain HTML if that is your cup of tea. Think of it as Docker containers for the World Wide Web. 😎😎&lt;/p>
+&lt;p>What we did is wrap the Vue 2 component as a web component before exposing it via module federation. To achieve this, we use the plugin &lt;a class="link" href="https://github.com/vuejs/vue-web-component-wrapper" target="_blank" rel="noopener"
+>Vue web component wrapper&lt;/a>. This plugin allows us to easily wrap any Vue 2 component as a web component:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">Vue&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;vue&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">wrap&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;@vue/web-component-wrapper&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">Component&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// any component options
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">CustomElement&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">wrap&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">Vue&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Component&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The wrapped component is exposed via module federation (more on that in part 2 of these series). Once the module is consumed in the shell, it can be registered as a custom element:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-typescript" data-lang="typescript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="nx">CustomElement&lt;/span> &lt;span class="kr">from&lt;/span> &lt;span class="s1">&amp;#39;mfe/customElement&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">customElements&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">define&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my-element&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">CustomElement&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Once registered, a new wrapper component can be made in the shell that contains a template that uses the custom element:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">my-element&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;/&lt;/span>&lt;span class="nt">my-element&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h1 id="conclusion">Conclusion&lt;/h1>
+&lt;p>The custom element behaves exactly like it should. It can be routed to, attributes can be added to it as a means of passing arguments. Events can be emitted by it and the browser tools can be used to fully inspect it. The web component achieves full encapsulation from the DOM by using a shadow DOM. Therefore it is (partly) immune from specific CSS styles that affect the regular DOM.&lt;/p>
+&lt;p>All in all, this provides us with a very nice way of exposing our legacy components with the use of open standards. We are not limited by specific frameworks and could even use React or Angular components in the shell. This creates a very solid foundation for the rest of our adventures with our customer.&lt;/p>
+&lt;p>I intend to continue writing about this and will go in-depth on module federation in a next installment. Stay tuned!&lt;/p></description></item></channel></rss>

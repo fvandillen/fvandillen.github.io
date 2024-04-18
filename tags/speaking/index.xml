@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Speaking on Florian van Dillen</title><link>https://fvandillen.github.io/tags/speaking/</link><description>Recent content in Speaking on Florian van Dillen</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 18 Apr 2024 16:00:00 +0200</lastBuildDate><atom:link href="https://fvandillen.github.io/tags/speaking/index.xml" rel="self" type="application/rss+xml"/><item><title>Speaking at Futuretech 2024</title><link>https://fvandillen.github.io/posts/speaking-at-futuretech-2024/</link><pubDate>Thu, 18 Apr 2024 16:00:00 +0200</pubDate><guid>https://fvandillen.github.io/posts/speaking-at-futuretech-2024/</guid><description>&lt;p>&lt;img src="https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image.jpg"
+width="1600"
+height="1200"
+srcset="https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image_hu7e275441c465555927283becdd73faa0_140417_480x0_resize_q75_box.jpg 480w, https://fvandillen.github.io/posts/speaking-at-futuretech-2024/images/image_hu7e275441c465555927283becdd73faa0_140417_1024x0_resize_q75_box.jpg 1024w"
+loading="lazy"
+alt="Explaining the different Dapr hosting modes"
+class="gallery-image"
+data-flex-grow="133"
+data-flex-basis="320px"
+>&lt;/p>
+&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>Yesterday I had the privillege of speaking at a tech conference for the first time! My colleague &lt;a class="link" href="https://hexmaster.nl/" target="_blank" rel="noopener"
+>Eduard Keilholz&lt;/a> pushed me to answer the call for papers and get started with speaking about cool tech at conferences. To my big surprise, my session was accepted and could take this next step in my career!&lt;/p>
+&lt;h2 id="my-session">My session&lt;/h2>
+&lt;p>During the work for &lt;a class="link" href="https://4dotnet.nl" target="_blank" rel="noopener"
+>4Dotnet&lt;/a>, I work for one of our customers where we are actively implementing microservices using .NET, Dapr and Azure Container Apps. In the local development environments, we use .NET Aspire to quickly gain insights into what the services are doing. OpenTelemetry is the key to discovering potential issues with the services before they occur in production.&lt;/p>
+&lt;p>With this experience, the idea for the session was born. How can I teach developers to build a good local development environment for distributed applications?&lt;/p>
+&lt;h2 id="slides">Slides&lt;/h2>
+&lt;p>Interested in the slides? I got you covered! &lt;a class="link" href="presentation_public.pdf" >Click here to download the slides.&lt;/a>&lt;/p>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;p>Of course the code that I used to build the demo is also available. &lt;a class="link" href="https://github.com/fvandillen/futuretech-dapr-aspire" target="_blank" rel="noopener"
+>Click here to be taken to the Github repository&lt;/a>. Do you have any questions? No problem, I&amp;rsquo;m happy to help you out and get started using Dapr and Aspire. &lt;a class="link" href="https://github.com/fvandillen/futuretech-dapr-aspire/issues" target="_blank" rel="noopener"
+>Just open a Github issue here&lt;/a> and we&amp;rsquo;ll be in touch!&lt;/p></description></item></channel></rss>
