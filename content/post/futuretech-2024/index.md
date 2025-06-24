@@ -3,10 +3,9 @@ title: "Speaking at Futuretech 2024"
 date: 2024-04-18T16:00:00+02:00
 draft: false
 author: ["Florian van Dillen"]
-tags: ["Speaking", "Conference", "Dapr", "Aspire", ".NET"]
+categories: [ "Public speaking" ]
+tags: [ "Dapr", "Aspire", ".NET"]
 description: My experience speaking at a tech conference.
-toc: true
-comments: false
 ---
 
 ![Explaining the different Dapr hosting modes](images/image.jpg)

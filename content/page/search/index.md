@@ -2,6 +2,7 @@
 title: "Search"
 slug: "search"
 layout: "search"
+readingTime: false
 outputs:
     - html
     - json
