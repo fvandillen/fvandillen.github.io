@@ -3,8 +3,8 @@ title: "Level up your debugging game!"
 date: 2022-07-01T09:01:27+02:00
 draft: false
 author: ["Florian van Dillen"] 
-categories: [ "Developer tooling" ]
-tags: ["C#", ".NET", "Visual Studio"]
+categories: [ ".NET" ]
+tags: ["Visual Studio"]
 description: Make debugging easier with the use of the DebuggerDisplayAttribute.
 ---
 

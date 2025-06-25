@@ -4,7 +4,7 @@ date: 2022-06-30T13:56:48+02:00
 draft: false
 author: ["Florian van Dillen"]
 categories: [ "Azure" ]
-tags: ["Azure", "Synapse", "Performance"]
+tags: ["Synapse", "Performance"]
 description: Explains how to kill a Synapse query that is stuck in SQL serverless pool.
 ---
 
