@@ -1,0 +1,313 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="az containerapp update only waits for ARM, not for your app to actually start. Here's a small GitHub Actions step that catches crash-looping deployments before your users do."><title>Your pipeline said it deployed. Your app crash-looped anyway.</title><link rel=canonical href=https://fvandillen.github.io/posts/verify-azure-container-apps-deployment-health/><link rel=stylesheet href=/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css><meta property='og:title' content="Your pipeline said it deployed. Your app crash-looped anyway."><meta property='og:description' content="az containerapp update only waits for ARM, not for your app to actually start. Here's a small GitHub Actions step that catches crash-looping deployments before your users do."><meta property='og:url' content='https://fvandillen.github.io/posts/verify-azure-container-apps-deployment-health/'><meta property='og:site_name' content='Florian van Dillen'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='GitHub Actions'><meta property='article:tag' content='Container Apps'><meta property='article:tag' content='DevOps'><meta property='article:published_time' content='2026-07-03T09:00:00+02:00'><meta property='article:modified_time' content='2026-07-03T09:00:00+02:00'><meta name=twitter:title content="Your pipeline said it deployed. Your app crash-looped anyway."><meta name=twitter:description content="az containerapp update only waits for ARM, not for your app to actually start. Here's a small GitHub Actions step that catches crash-looping deployments before your users do."></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_hu_214b69c2346b6f94.jpg width=300 height=300 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>⚡</span></figure><div class=site-meta><h1 class=site-name><a href=/>Florian van Dillen</a></h1><h2 class=site-description>Developer and Cloud Solution Architect @ 4Dotnet</h2></div></header><ol class=menu-social><li><a href=https://github.com/fvandillen target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li><a href=/speaking/><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-microphone-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 12.9A5 5 0 1011.098 9"/><path d="M15 12.9l-3.902-3.899-7.513 8.584a2 2 0 102.827 2.83L15 12.9z"/></svg>
+<span>Speaking</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#the-2-am-feeling-at-10-am>The 2 AM feeling, at 10 AM</a></li><li><a href=#why-your-pipeline-doesnt-notice>Why your pipeline doesn&rsquo;t notice</a></li><li><a href=#a-full-working-example>A full, working example</a><ol><li><a href=#the-net-project>The .NET project</a></li><li><a href=#the-github-actions-workflow>The GitHub Actions workflow</a></li></ol></li><li><a href=#walking-through-the-health-check>Walking through the health check</a></li><li><a href=#why-not-just-curl-a-health-endpoint>Why not just curl a health endpoint?</a></li><li><a href=#conclusion>Conclusion</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/azure/>Azure
+</a><a href=/categories/.net/>.NET</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/posts/verify-azure-container-apps-deployment-health/>Your pipeline said it deployed. Your app crash-looped anyway.</a></h2><h3 class=article-subtitle>az containerapp update only waits for ARM, not for your app to actually start. Here's a small GitHub Actions step that catches crash-looping deployments before your users do.</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Jul 03, 2026</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>7 minute read</time></div></footer></div></header><section class=article-content><h2 id=the-2-am-feeling-at-10-am>The 2 AM feeling, at 10 AM</h2><p>I recently shipped a small feature to an internal tool: profile picture uploads backed by Azure Blob Storage. Locally, everything worked — Aspire, Azurite emulator, the whole local dev loop was green. I pushed to <code>main</code>, the GitHub Actions pipeline ran, every step turned green, and I went on with my day.</p><p>A little while later a colleague tried uploading a picture and got a <code>404 Not Found</code>. Odd — the endpoint existed, I&rsquo;d tested it. I opened the Container App logs in the portal and found this instead:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>Unhandled exception. System.ArgumentException: Format of the initialization string does not conform to specification starting at index 0.
+</span></span><span class=line><span class=cl>   at System.Data.Common.DbConnectionOptions.GetKeyValuePair(...)
+</span></span><span class=line><span class=cl>   at Aspire.Azure.Storage.Blobs.AzureBlobStorageContainerSettings.ParseConnectionString(String connectionString)
+</span></span><span class=line><span class=cl>   at Program.&lt;Main&gt;$(String[] args) in /home/runner/work/.../Program.cs:line 63</span></span></code></pre></td></tr></table></div></div><p>The API had been crash-looping since the deploy. Every single request was hitting a container that never finished starting up. And yet the GitHub Actions run for that deployment was <strong>100% green</strong>.</p><h2 id=why-your-pipeline-doesnt-notice>Why your pipeline doesn&rsquo;t notice</h2><p>If you deploy to Azure Container Apps from a workflow, there&rsquo;s a good chance your rollout step looks something like this:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>az containerapp update <span class=se>\
+</span></span></span><span class=line><span class=cl>  --name my-api <span class=se>\
+</span></span></span><span class=line><span class=cl>  --resource-group my-rg <span class=se>\
+</span></span></span><span class=line><span class=cl>  --image myregistry.azurecr.io/my-api:abc1234</span></span></code></pre></td></tr></table></div></div><p>This command waits for the <em>Azure Resource Manager</em> deployment to reach <code>Succeeded</code>. But that only means Azure accepted your request and created a new revision — it says <strong>nothing</strong> about whether the container inside that revision actually started, bound to its port, and started serving traffic. An unhandled exception during startup, a missing environment variable, a bad connection string — all of these crash the container after ARM has already reported success. Your pipeline goes green, your app goes down, and you find out from a colleague (or a customer) instead of from CI.</p><p>The fix is simple: after the rollout, ask Container Apps directly whether the revision you just shipped is actually healthy, and fail the job if it isn&rsquo;t.</p><h2 id=a-full-working-example>A full, working example</h2><p>Below is a complete, minimal GitHub Actions workflow for &ldquo;an arbitrary .NET solution&rdquo; — swap in your own project names, registry, and resource group. It:</p><ol><li>Builds and publishes a container image directly from the <code>.csproj</code> using the .NET SDK&rsquo;s built-in container support (no <code>Dockerfile</code> needed).</li><li>Pushes it to Azure Container Registry.</li><li>Rolls it out to an existing Azure Container App.</li><li><strong>Verifies the new revision is actually running and healthy before letting the job succeed.</strong></li></ol><p>It assumes the Container App and Container Registry already exist (created once via Bicep/Terraform/<code>az cli</code>, and that the workflow authenticates via OIDC federated credentials — no stored client secrets.</p><h3 id=the-net-project>The .NET project</h3><p>Nothing special is required here — this works for any ASP.NET Core project. Just make sure it targets Linux/x64 so the SDK can build a container image for it:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;Project</span> <span class=na>Sdk=</span><span class=s>&#34;Microsoft.NET.Sdk.Web&#34;</span><span class=nt>&gt;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=nt>&lt;PropertyGroup&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&lt;TargetFramework&gt;</span>net10.0<span class=nt>&lt;/TargetFramework&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&lt;Nullable&gt;</span>enable<span class=nt>&lt;/Nullable&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&lt;ImplicitUsings&gt;</span>enable<span class=nt>&lt;/ImplicitUsings&gt;</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&lt;/PropertyGroup&gt;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nt>&lt;/Project&gt;</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Sanity check locally before you ever touch CI - this is exactly</span>
+</span></span><span class=line><span class=cl><span class=c1># what the pipeline will run to build the image.</span>
+</span></span><span class=line><span class=cl>dotnet publish src/MyApp.Api/MyApp.Api.csproj <span class=se>\
+</span></span></span><span class=line><span class=cl>  -c Release <span class=se>\
+</span></span></span><span class=line><span class=cl>  --os linux --arch x64 <span class=se>\
+</span></span></span><span class=line><span class=cl>  /t:PublishContainer <span class=se>\
+</span></span></span><span class=line><span class=cl>  -p:ContainerRegistry<span class=o>=</span><span class=s2>&#34;myregistry.azurecr.io&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  -p:ContainerRepository<span class=o>=</span><span class=s2>&#34;my-api&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  -p:ContainerImageTags<span class=o>=</span><span class=s2>&#34;\&#34;local-test\&#34;&#34;</span></span></span></code></pre></td></tr></table></div></div><h3 id=the-github-actions-workflow>The GitHub Actions workflow</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deploy to Azure</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>workflow_dispatch</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>permissions</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>id-token</span><span class=p>:</span><span class=w> </span><span class=l>write  </span><span class=w> </span><span class=c># required for OIDC az login</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>contents</span><span class=p>:</span><span class=w> </span><span class=l>read</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>RESOURCE_GROUP</span><span class=p>:</span><span class=w> </span><span class=l>my-rg</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>CONTAINER_APP_NAME</span><span class=p>:</span><span class=w> </span><span class=l>my-api</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>IMAGE_REPOSITORY</span><span class=p>:</span><span class=w> </span><span class=l>my-api</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>deploy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Checkout</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Azure login (OIDC)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>azure/login@v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>client-id</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.AZURE_CLIENT_ID }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>tenant-id</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.AZURE_TENANT_ID }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>subscription-id</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.AZURE_SUBSCRIPTION_ID }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Setup .NET</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-dotnet@v4</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>dotnet-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;10.0.x&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ACR login</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>az acr login --name myregistry</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Build &amp; push image</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          tag=&#34;${GITHUB_SHA::8}&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>          dotnet publish src/MyApp.Api/MyApp.Api.csproj \
+</span></span></span><span class=line><span class=cl><span class=sd>            -c Release \
+</span></span></span><span class=line><span class=cl><span class=sd>            --os linux --arch x64 \
+</span></span></span><span class=line><span class=cl><span class=sd>            /t:PublishContainer \
+</span></span></span><span class=line><span class=cl><span class=sd>            -p:ContainerRegistry=&#34;myregistry.azurecr.io&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -p:ContainerRepository=&#34;$IMAGE_REPOSITORY&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -p:ContainerImageTags=&#34;\&#34;$tag\&#34;&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>          echo &#34;API_IMAGE=myregistry.azurecr.io/$IMAGE_REPOSITORY:$tag&#34; &gt;&gt; &#34;$GITHUB_ENV&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Roll out new image</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>azure/cli@v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>azcliversion</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>inlineScript</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>            az containerapp update \
+</span></span></span><span class=line><span class=cl><span class=sd>              --name &#34;$CONTAINER_APP_NAME&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>              --resource-group &#34;$RESOURCE_GROUP&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>              --image &#34;$API_IMAGE&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>              -o none</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># `az containerapp update` only waits for the ARM-level provisioning of</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># the new revision to succeed — it does NOT verify the container</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># actually started (e.g. an unhandled startup exception causes a crash</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># loop that ARM still reports as &#34;Succeeded&#34;). Poll the revision&#39;s own</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># health/running state so a broken image fails the pipeline instead of</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># silently going live.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Verify new revision is healthy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>azure/cli@v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>azcliversion</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>inlineScript</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>            set -euo pipefail
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>            revision=$(az containerapp show \
+</span></span></span><span class=line><span class=cl><span class=sd>              --name &#34;$CONTAINER_APP_NAME&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>              --resource-group &#34;$RESOURCE_GROUP&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>              --query properties.latestRevisionName -o tsv)
+</span></span></span><span class=line><span class=cl><span class=sd>            echo &#34;Watching revision: $revision&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>            max_attempts=30
+</span></span></span><span class=line><span class=cl><span class=sd>            attempt=0
+</span></span></span><span class=line><span class=cl><span class=sd>            while true; do
+</span></span></span><span class=line><span class=cl><span class=sd>              attempt=$((attempt + 1))
+</span></span></span><span class=line><span class=cl><span class=sd>              state=$(az containerapp revision show \
+</span></span></span><span class=line><span class=cl><span class=sd>                --name &#34;$CONTAINER_APP_NAME&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                --resource-group &#34;$RESOURCE_GROUP&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                --revision &#34;$revision&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                --query &#34;{running:properties.runningState, health:properties.healthState}&#34; -o json)
+</span></span></span><span class=line><span class=cl><span class=sd>              running=$(echo &#34;$state&#34; | jq -r &#39;.running&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>              health=$(echo &#34;$state&#34; | jq -r &#39;.health&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>              echo &#34;Attempt $attempt/$max_attempts: runningState=$running healthState=$health&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>              if [ &#34;$running&#34; = &#34;Running&#34; ] &amp;&amp; [ &#34;$health&#34; = &#34;Healthy&#34; ]; then
+</span></span></span><span class=line><span class=cl><span class=sd>                echo &#34;Revision $revision is healthy.&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>                break
+</span></span></span><span class=line><span class=cl><span class=sd>              fi
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>              if [ &#34;$running&#34; = &#34;Failed&#34; ] || [ &#34;$health&#34; = &#34;Unhealthy&#34; ]; then
+</span></span></span><span class=line><span class=cl><span class=sd>                echo &#34;::error::Revision $revision failed to start (runningState=$running, healthState=$health).&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>                echo &#34;--- Recent container logs ---&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>                az containerapp logs show \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --name &#34;$CONTAINER_APP_NAME&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --resource-group &#34;$RESOURCE_GROUP&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --revision &#34;$revision&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --tail 200 || true
+</span></span></span><span class=line><span class=cl><span class=sd>                exit 1
+</span></span></span><span class=line><span class=cl><span class=sd>              fi
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>              if [ &#34;$attempt&#34; -ge &#34;$max_attempts&#34; ]; then
+</span></span></span><span class=line><span class=cl><span class=sd>                echo &#34;::error::Timed out waiting for revision $revision to become healthy.&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>                echo &#34;--- Recent container logs ---&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>                az containerapp logs show \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --name &#34;$CONTAINER_APP_NAME&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --resource-group &#34;$RESOURCE_GROUP&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --revision &#34;$revision&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>                  --tail 200 || true
+</span></span></span><span class=line><span class=cl><span class=sd>                exit 1
+</span></span></span><span class=line><span class=cl><span class=sd>              fi
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>              sleep 10
+</span></span></span><span class=line><span class=cl><span class=sd>            done</span></span></span></code></pre></td></tr></table></div></div><h2 id=walking-through-the-health-check>Walking through the health check</h2><p>The two Container Apps-specific commands do all the work:</p><ul><li><code>az containerapp show --query properties.latestRevisionName</code> finds the name of the revision that was just created by the update — you need this to look at <em>that specific</em> revision rather than whatever happened to be active before.</li><li><code>az containerapp revision show</code> returns, among other things, <code>properties.runningState</code> (<code>Running</code>, <code>Processing</code>, <code>Failed</code>, <code>Degraded</code>, &mldr;) and <code>properties.healthState</code> (<code>Healthy</code>, <code>Unhealthy</code>, <code>None</code>). Together they tell you whether the platform managed to start your container <em>and</em> whether it&rsquo;s currently considered healthy.</li></ul><p>The loop polls both values every 10 seconds for up to 5 minutes (<code>max_attempts=30</code>). Three outcomes are possible:</p><ol><li><strong>Healthy</strong> — <code>Running</code> + <code>Healthy</code> — the step succeeds and the job moves on.</li><li><strong>Clearly broken</strong> — <code>Failed</code> or <code>Unhealthy</code> — no point waiting any longer, so it fails fast and dumps the last 200 lines of container logs straight into the workflow output. This is exactly the exception trace that took me a trip to the Azure Portal to find manually — now it&rsquo;s right there in the Actions log.</li><li><strong>Timeout</strong> — after 5 minutes without a clear answer, the step gives up, fails, and still dumps the logs for you.</li></ol><p>That&rsquo;s it. No extra infrastructure, no extra services, just two <code>az</code> calls wrapped in a small polling loop.</p><h2 id=why-not-just-curl-a-health-endpoint>Why not just curl a health endpoint?</h2><p>An alternative is to expose a <code>/health</code> endpoint and curl the app&rsquo;s public URL after deploying. It works, but it has downsides for this use case:</p><ul><li>It requires your app to expose an <em>unauthenticated</em>, public health endpoint — something you may not want in production, and ASP.NET Core&rsquo;s own health check middleware documentation actively warns about the security implications of enabling it outside development.</li><li>It tells you the app answered HTTP requests, but not <em>why</em> it didn&rsquo;t if it doesn&rsquo;t — you&rsquo;re back to digging through logs manually.</li><li>It doesn&rsquo;t work at all if your app has no HTTP-reachable health surface (background workers, for example).</li></ul><p>Asking the Container Apps control plane directly sidesteps all three: it works for any container regardless of what&rsquo;s running inside it, and a failure comes with the logs already attached.</p><h2 id=conclusion>Conclusion</h2><p>&ldquo;The pipeline is green&rdquo; and &ldquo;the app is running&rdquo; are two different claims, and it&rsquo;s worth spending five extra minutes making your pipeline actually check the second one. It would have saved me a <code>404</code> in production and a slightly awkward Teams message from a colleague. Now it just fails the build and shows me the stack trace instead — much better start to the day.</p></section><footer class=article-footer><section class=article-tags><a href=/tags/github-actions/>GitHub Actions</a>
+<a href=/tags/container-apps/>Container Apps</a>
+<a href=/tags/devops/>DevOps</a></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>Related content</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/posts/speaking-at-cttt2025/><div class=article-details><h2 class=article-title>Speaking at CTTT2025</h2></div></a></article><article><a href=/posts/speaking-at-futuretech-2024/><div class=article-details><h2 class=article-title>Speaking at Futuretech 2024</h2></div></a></article><article><a href=/posts/level-up-your-debugging-game/><div class=article-details><h2 class=article-title>Level up your debugging game!</h2></div></a></article><article><a href=/posts/how-to-kill-a-synapse-query/><div class=article-details><h2 class=article-title>How to kill a Synapse query</h2></div></a></article></div></div></aside><script src=https://giscus.app/client.js data-repo=fvandillen/fvandillen.github.io data-repo-id=R_kgDOHNwKAQ data-category="Blog comments" data-category-id=DIC_kwDOHNwKAc4Cr79o data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=light data-lang=en data-loading crossorigin=anonymous async></script><script>function setGiscusTheme(e){let t=document.querySelector("iframe.giscus-frame");t&&t.contentWindow.postMessage({giscus:{setConfig:{theme:e}}},"https://giscus.app")}(function(){addEventListener("message",t=>{if(event.origin!=="https://giscus.app")return;e()}),window.addEventListener("onColorSchemeChange",e);function e(){setGiscusTheme(document.documentElement.dataset.scheme==="light"?"light":"dark_dimmed")}})()</script><footer class=site-footer><section class=copyright>&copy;
+2022 -
+2026 Florian van Dillen</section><section class=powerby>Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a><br>Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.30.0>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a></section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>
