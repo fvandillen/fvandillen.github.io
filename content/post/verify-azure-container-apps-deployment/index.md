@@ -232,4 +232,4 @@ Asking the Container Apps control plane directly sidesteps all three: it works f
 
 ## Conclusion
 
-"The pipeline is green" and "the app is running" are two different claims, and it's worth spending five extra minutes making your pipeline actually check the second one. It would have saved me a `404` in production and a slightly awkward Slack message from a colleague. Now it just fails the build and shows me the stack trace instead — much better start to the day.
+"The pipeline is green" and "the app is running" are two different claims, and it's worth spending five extra minutes making your pipeline actually check the second one. It would have saved me a `404` in production and a slightly awkward Teams message from a colleague. Now it just fails the build and shows me the stack trace instead — much better start to the day.
